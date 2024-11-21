@@ -7,8 +7,8 @@ import time
 
 logging.basicConfig(filename="trade_log.txt", level=logging.INFO)
 
-access = "UxavXwLQLeMi6iEjxb4p8Dy6rwmk9GhzB2l8Dr8I"
-secret = "2NPZtGBJ0VV9sPjcvL76kd6N4opwVgpxpj1jUi3E"
+access = "J8iGqPwfjkX7Yg9bdzwFGkAZcTPU7rElXRozK7O4"
+secret = "6MGxH2WjIftgQ85SLK1bcLxV4emYvrpbk6nYuqRN"
 server_url = "https://api.upbit.com/v1/market/all"
 
 upbit = pyupbit.Upbit(access, secret)
