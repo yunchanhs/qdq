@@ -146,7 +146,7 @@ class CryptoTradingEnv(gym.Env):
 def train_sac_model(ticker):
     env = CryptoTradingEnv(ticker)
     model = SAC("MlpPolicy", env, verbose=1, device="cuda" if torch.cuda.is_available() else "cpu")
-    model.learn(total_timesteps=10000)
+    model.learn(total_timesteps=500000)
     return model
 
 # 메인 실행
