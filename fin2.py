@@ -29,29 +29,6 @@ highest_prices = {}  # 최고가 기록용
 last_trained_time = None  # 마지막 학습 시간
 TRAINING_INTERVAL = timedelta(hours=8)  # 6시간마다 재학습
 
-# 1️⃣ 업비트 거래소 객체 생성
-exchange = ccxt.upbit()
-
-# 2️⃣ 거래량 상위 10개 코인 조회 함수
-def fetch_top_coins_by_volume():
-    tickers = exchange.fetch_tickers()  # 모든 티커 데이터 가져오기
-    
-    # 'KRW-' 마켓의 코인들만 필터링하고 거래량 기준 정렬
-    volumes = [
-        (symbol, data['quoteVolume']) 
-        for symbol, data in tickers.items() 
-        if symbol.startswith('KRW-')
-    ]
-    
-    # 거래량 기준 내림차순 정렬 후 상위 10개 선택
-    top_coins = sorted(volumes, key=lambda x: x[1], reverse=True)[:10]
-    
-    return [coin[0] for coin in top_coins]  # 코인 심볼만 반환
-
-# 3️⃣ 실행하여 거래량 상위 10개 코인 출력
-top_coins = fetch_top_coins_by_volume()
-print("업비트 거래량 상위 10개 코인:", top_coins)
-
 def get_top_tickers(n=10):
     """거래량 상위 n개 코인을 선택"""
     tickers = pyupbit.get_tickers(fiat="KRW")
@@ -64,20 +41,6 @@ def get_top_tickers(n=10):
             volumes.append((ticker, 0))
     sorted_tickers = sorted(volumes, key=lambda x: x[1], reverse=True)
     return [ticker for ticker, _ in sorted_tickers[:n]]
-
-def detect_surge_tickers(threshold=0.03):
-    """실시간 급상승 코인을 감지"""
-    tickers = pyupbit.get_tickers(fiat="KRW")
-    surge_tickers = []
-    for ticker in tickers:
-        try:
-            df = pyupbit.get_ohlcv(ticker, interval="minute1", count=5)
-            price_change = (df['close'].iloc[-1] - df['close'].iloc[0]) / df['close'].iloc[0]
-            if price_change >= threshold:
-                surge_tickers.append(ticker)
-        except:
-            continue
-    return surge_tickers
 
 def get_ohlcv_cached(ticker, interval="minute60"):
     time.sleep(0.2)  # 요청 간격 조절
