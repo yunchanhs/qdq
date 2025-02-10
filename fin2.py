@@ -267,6 +267,49 @@ def fetch_top_coins_by_volume():
 top_coins = fetch_top_coins_by_volume()  # 상위 10개 코인 가져오기
 print("거래량 상위 10개 코인:", top_coins)
 
+def should_sell(ticker, current_price):
+    """트레일링 스탑 로직을 활용한 매도 판단"""
+    if ticker not in entry_prices:
+        return False
+    
+    entry_price = entry_prices[ticker]
+    highest_prices[ticker] = max(highest_prices[ticker], current_price)
+    peak_drop = (highest_prices[ticker] - current_price) / highest_prices[ticker]
+
+    # 동적 손절 & 익절 조건
+    if peak_drop > 0.02:  # 고점 대비 2% 하락 시 익절
+        return True
+    elif (current_price - entry_price) / entry_price < STOP_LOSS_THRESHOLD:
+        return True  # 손절 조건
+
+    return False
+    
+def backtest(ticker, model, initial_balance=1_000_000, fee=0.0005):
+    """과거 데이터로 백테스트 실행"""
+    data = get_features(ticker)
+    balance = initial_balance
+    position = 0
+    entry_price = 0
+
+    for i in range(30, len(data) - 1):
+        x_input = torch.tensor(data.iloc[i-30:i][['macd', 'signal', 'rsi', 'adx', 'atr', 'return']].values,
+                               dtype=torch.float32).unsqueeze(0)
+        signal = model(x_input).item()
+
+        current_price = data.iloc[i]['close']
+
+        if position == 0 and signal > ML_THRESHOLD:
+            position = balance / current_price
+            entry_price = current_price
+            balance = 0
+
+        elif position > 0 and should_sell(ticker, current_price):
+            balance = position * current_price * (1 - fee)
+            position = 0
+
+    final_value = balance + (position * data.iloc[-1]['close'])
+    return final_value / initial_balance
+
 # 메인 로직
 if __name__ == "__main__":
     upbit = pyupbit.Upbit(ACCESS_KEY, SECRET_KEY)
