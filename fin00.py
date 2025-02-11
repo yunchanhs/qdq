@@ -253,24 +253,7 @@ def get_ml_signal(ticker, model):
     except Exception as e:
         print(f"[{ticker}] AI 신호 계산 에러: {e}")
         return 0
-
-def should_sell(ticker, current_price):
-    """트레일링 스탑 로직을 활용한 매도 판단"""
-    if ticker not in entry_prices:
-        return False
-    
-    entry_price = entry_prices[ticker]
-    highest_prices[ticker] = max(highest_prices[ticker], current_price)
-    peak_drop = (highest_prices[ticker] - current_price) / highest_prices[ticker]
-
-    # 동적 손절 & 익절 조건
-    if peak_drop > 0.02:  # 고점 대비 2% 하락 시 익절
-        return True
-    elif (current_price - entry_price) / entry_price < STOP_LOSS_THRESHOLD:
-        return True  # 손절 조건
-
-    return False
-    
+        
 def backtest(ticker, model, initial_balance=1_000_000, fee=0.0005):
     """과거 데이터로 백테스트 실행"""
     data = get_features(ticker)
